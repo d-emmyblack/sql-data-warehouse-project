@@ -6,8 +6,8 @@ This is the BULK INSERT script section of my code from the bronze layer
 	Also created a stored procedure
 ============================================================================================
 Script Purpose:
-  - Truncate the silver tables before loading data.
-  - Uses the 'BULK INSERT' command to load data from the Bronze Table into Silver Tables.
+  - Truncate the table before loading data.
+  - Insert transformed and cleaned data from the Bronze into Silver Tables.
 
 -- Highlight to execute the EXEC command
 EXEC silver.load_silver;
@@ -17,7 +17,7 @@ EXEC silver.load_silver;
 CREATE OR ALTER PROCEDURE silver.load_silver AS
 BEGIN
 	
-	-- Querying to remove duplicates
+	-- Query to remove duplicates
 	-- Transformation Query
 		-- ===============================================================================================================================
 
