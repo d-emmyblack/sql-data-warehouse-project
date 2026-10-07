@@ -1,0 +1,169 @@
+--cust_
+-- Check for NULLs or Duplicates in Primary Key
+-- Expectation: No Result
+SELECT
+prd_id,
+count(*)
+FROM bronze.crm_prd_info
+group by prd_id
+having count(*) >1
+
+
+-- check unwanted spaces
+--- expectation: No results
+
+select 
+cst_gndr
+from silver.crm_cust_info
+where cst_firstname!= trim(cst_firstname)
+
+
+-- DAta Standardization & Consistency
+-- determine full value of information: F - Female, M-Male, S-Single, M-Married
+-- Marital Status and Gender
+SELECT DISTINCT cst_gndr
+FROM silver.crm_cust_info
+
+SELECT DISTINCT prd_line
+FROM silver.crm_prd_info
+
+
+-- Check for Invalid Date Orders
+
+
+
+-- import all info here to the silver layer
+
+-- checking for info correctness after querying
+SELECT
+*
+FROM silver.crm_cust_info
+
+
+
+
+-- import all info here to the silver layer
+
+-- checking for info correctness after querying
+SELECT
+*
+FROM silver.crm_cust_info
+
+
+-- Check for NUlls and Negative numbers
+-- Expectation: No results
+SELECT prd_cost
+FROM silver.crm_prd_info
+where prd_cost < 0 or prd_cost IS NULL
+
+
+
+( 
+-- Removing Duplicates
+	SELECT
+	*,
+	ROW_NUMBER() over (partition by cst_id Order by cst_create_date DESC) as flag_last
+	FROM bronze.crm_cust_info
+	WHERE cst_id IS NOT NULL
+)t	
+WHERE flag_last = 1  -- Select the most recent record per customer
+
+SELECT
+NULLIF(sls_ship_dt, 0) sls_ship_dt
+FROM bronze.crm_sales_details
+WHERE sls_ship_dt <= 0 
+or LEN(sls_ship_dt) != 8 
+or sls_ship_dt > 20500101
+or sls_ship_dt < 19000101
+
+-- Check for invalid Date orders
+select
+*
+from silver.crm_sales_details
+where sls_order_dt > sls_ship_dt 
+or sls_order_dt > sls_due_dt
+
+-- Business Rules says: Sales = Quantity * Price
+-- Negatives, Zeros, Nulls are not Allowe
+-- Ask expert or source of data about the data
+SELECT Distinct
+sls_sales AS old_sls_sales,
+sls_quantity,
+sls_price AS old_sls_price,
+
+CASE WHEN sls_sales is NUll OR sls_sales <=0 or sls_sales != sls_quantity * ABS(sls_price)
+			THEN sls_quantity * ABS(sls_price)
+		ELSE sls_sales
+	END AS sls_sales,
+
+CASE WHEN sls_price is NUll OR sls_price <=0
+			THEN sls_sales / NULLIF(sls_quantity, 0)
+		ELSE sls_price
+	END AS sls_price
+
+	
+FROM bronze.crm_sales_details
+WHERE sls_sales != sls_quantity * sls_price
+OR sls_sales is NUll OR sls_quantity is NULL OR sls_price is NULL
+OR sls_sales <=0 OR sls_quantity <=0 OR sls_price <=0
+
+
+-- ##### erp_cust_az12
+-- identify out of range for birthdates.
+select distinct
+bdate
+from bronze.erp_cust_az12
+where bdate < '1924-01-01' or bdate > getdate()
+-- then fix in DDL
+
+-- DAta standardization & consistency
+select distinct 
+gen,
+CASE 
+	WHEN UPPER(TRIM(gen)) IN ('M', 'Male') THEN 'Male'
+	WHEN UPPER(TRIM(gen)) IN ('F', 'Female') THEN 'Female'
+	ELSE 'n/a'
+END AS gen
+from bronze.erp_cust_az12
+
+
+-- erp_loc_a101;
+
+-- Data Standardization & Consistency
+-- cid
+SELECT
+REPLACE(cid, '-', '') cid,
+cntry
+FROM bronze.erp_loc_a101 WHERE REPLACE(cid, '-', '') NOT IN (SELECT cst_key FROM silver.crm_cust_info)
+
+-- cntry
+SELECT	DISTinct
+cntry as old_cntry,
+CASE	WHEN TRIM(cntry) = 'DE' THEN 'Germany'
+		WHEN TRIM(cntry) IN ('US', 'USA') THEN 'United States'
+		WHEN TRIM(cntry) = '' OR  cntry IS NULL THEN 'n/a'
+		ELSE TRIM(cntry)
+END AS cntry
+FROM bronze.erp_loc_a101
+ORDER BY cntry
+
+-- erp_px_cat_g1v2
+-- Connecting id to prd_key 
+SELECT DISTINCT
+id,
+cat,
+subcat,
+maintenance
+FROM bronze.erp_px_cat_g1v2
+
+-- check for unwanted spaces
+SELECT * FROM bronze.erp_px_cat_g1v2
+WHERE cat != TRIM(cat) OR subcat != TRIM(subcat) OR maintenance != TRIM(maintenance)
+
+-- Data Standardixation & Conssitency erp_px_cat_g1v2
+SELECT DISTINCT
+id,
+cat,
+subcat,
+maintenance
+FROM bronze.erp_px_cat_g1v2
