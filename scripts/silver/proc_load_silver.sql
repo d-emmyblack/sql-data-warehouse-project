@@ -10,7 +10,9 @@ Script Purpose:
   - Uses the 'BULK INSERT' command to load data from the Bronze Table into Silver Tables.
 
 -- Highlight to execute the EXEC command
-EXEC silver.load_silver
+EXEC silver.load_silver;
+-- ===============================================
+*/
 
 CREATE OR ALTER PROCEDURE silver.load_silver AS
 BEGIN
