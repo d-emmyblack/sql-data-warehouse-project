@@ -1,3 +1,17 @@
+/*
+  ===========================================================================
+  DDL Script for Creating Gold Views
+  ===========================================================================
+  Script Purpose:
+  This script creates tables in the 'gold' views.
+  DDL structure of 'gold' Tables
+  This code helps to create VIEWS for the GOLD layer.
+	gold.dim_customers
+	gold.dim_products
+	gold.fact_sales
+  ===========================================================================
+*/
+
 
 
 
